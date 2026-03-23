@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Opera Tracker</title>
+  <style>
+    :root{
+      --bg:#0f1220;
+      --panel:#171b2e;
+      --panel-2:#1f2540;
+      --text:#eef2ff;
+      --muted:#b9c2e3;
+      --accent:#c9a227;
+      --accent-2:#7dd3fc;
+      --good:#86efac;
+      --border:#2d355b;
+      --danger:#fca5a5;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      background:linear-gradient(180deg, #0b0e1a 0%, #12172a 100%);
+      color:var(--text);
+    }
+    .wrap{max-width:1200px;margin:0 auto;padding:24px}
+    h1{margin:0 0 8px;font-size:2rem}
+    .sub{color:var(--muted);margin-bottom:20px}
+    .toolbar, .subtoolbar{
+      display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:14px
+    }
+    .tabs{display:flex;gap:10px;margin:18px 0 16px;flex-wrap:wrap}
+    button, .file-label{
+      background:var(--panel-2);
+      color:var(--text);
+      border:1px solid var(--border);
+      border-radius:10px;
+      padding:10px 14px;
+      cursor:pointer;
+      font-size:0.95rem;
+    }
+    button:hover, .file-label:hover{filter:brightness(1.08)}
+    button.active{border-color:var(--accent); box-shadow:0 0 0 1px var(--accent) inset}
+    .pill{
+      display:inline-block;
+      padding:4px 9px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      background:#12172a;
+      color:var(--muted);
+      font-size:.8rem
+    }
+    .grid{
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap:14px;
+    }
+    .card{
+      background:rgba(23,27,46,.95);
+      border:1px solid var(--border);
+      border-radius:16px;
+      padding:16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.2);
+    }
+    .title-row{
+      display:flex;justify-content:space-between;gap:12px;align-items:flex-start;
+      margin-bottom:8px
+    }
+    .title{
+      font-size:1.15rem;font-weight:700;line-height:1.25
+    }
+    .meta{
+      color:var(--muted);
+      font-size:.92rem;
+      display:flex;gap:8px;flex-wrap:wrap;
+      margin-bottom:10px
+    }
+    .field{margin-bottom:10px}
+    label{
+      display:block;
+      font-size:.85rem;
+      color:var(--muted);
+      margin-bottom:5px
+    }
+    input[type="text"], select, textarea{
+      width:100%;
+      background:#0e1326;
+      color:var(--text);
+      border:1px solid var(--border);
+      border-radius:10px;
+      padding:10px 12px;
+      font-size:.95rem;
+    }
+    textarea{min-height:88px;resize:vertical}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+    .small{font-size:.84rem;color:var(--muted)}
+    .hidden{display:none !important}
+    .stats{
+      display:grid;grid-template-columns: repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:16px
+    }
+    .stat{
+      background:var(--panel);
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:14px;
+    }
+    .stat .k{font-size:1.7rem;font-weight:800;margin-top:4px}
+    a{color:var(--accent-2)}
+    .footer-note{margin-top:18px;color:var(--muted);font-size:.9rem}
+    .section-title{font-size:1.2rem;font-weight:700;margin:18px 0 12px}
+    .topbar{
+      display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap
+    }
+    .inline{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    .status-seen, .status-read{color:var(--good)}
+    .status-planned{color:var(--accent)}
+    .status-none{color:var(--muted)}
+    .status-listened{color:#c4b5fd}
+    .notice{
+      background:#10162b;border:1px solid var(--border);padding:12px 14px;border-radius:12px;
+      color:var(--muted);margin-bottom:16px
+    }
+    input[type="file"]{display:none}
+    .danger{border-color:#7f1d1d;color:#fecaca}
+    @media (max-width:700px){
+      .row,.row-3{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <div>
+        <h1>Opera Tracker</h1>
+        <div class="sub">Track operas you've attended or listened to, books you've read, notes, ratings, and your progress across the canon.</div>
+      </div>
+      <div class="inline">
+        <button id="exportBtn">Export Data</button>
+        <label class="file-label" for="importFile">Import Data</label>
+        <input id="importFile" type="file" accept="application/json" />
+        <button id="resetBtn" class="danger">Reset to Defaults</button>
+      </div>
+    </div>
+
+    <div class="notice">
+      Your data saves automatically in this browser with local storage. Use <strong>Export Data</strong> to move it between devices, and <strong>Import Data</strong> to restore it elsewhere.
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" data-tab="operas">Operas</button>
+      <button class="tab" data-tab="books">Books</button>
+      <button class="tab" data-tab="stats">Stats</button>
+    </div>
+
+    <section id="operasTab">
+      <div class="stats" id="operaStats"></div>
+      <div class="toolbar">
+        <input id="operaSearch" type="text" placeholder="Search title, composer, country, era..." />
+        <select id="composerFilter"></select>
+        <select id="countryFilter"></select>
+        <select id="eraFilter"></select>
+        <select id="operaStatusFilter">
+          <option value="all">All statuses</option>
+          <option value="untracked">Untracked</option>
+          <option value="seen">Seen live</option>
+          <option value="listened">Listened</option>
+          <option value="both">Seen + listened</option>
+          <option value="planned">Planned</option>
+        </select>
+        <select id="sortOperas">
+          <option value="title">Sort: Title</option>
+          <option value="composer">Sort: Composer</option>
+          <option value="year">Sort: Year</option>
+          <option value="rating">Sort: Rating</option>
+          <option value="status">Sort: Status</option>
+        </select>
+      </div>
+      <div class="grid" id="operaGrid"></div>
+    </section>
+
+    <section id="booksTab" class="hidden">
+      <div class="stats" id="bookStats"></div>
+      <div class="toolbar">
+        <input id="bookSearch" type="text" placeholder="Search title, author, topic..." />
+        <select id="bookStatusFilter">
+          <option value="all">All statuses</option>
+          <option value="untracked">Untracked</option>
+          <option value="reading">Currently reading</option>
+          <option value="read">Read</option>
+          <option value="planned">Planned</option>
+        </select>
+        <select id="bookSort">
+          <option value="title">Sort: Title</option>
+          <option value="author">Sort: Author</option>
+          <option value="rating">Sort: Rating</option>
+          <option value="status">Sort: Status</option>
+        </select>
+      </div>
+      <div class="grid" id="bookGrid"></div>
+    </section>
+
+    <section id="statsTab" class="hidden">
+      <div class="section-title">Progress Overview</div>
+      <div class="stats" id="allStats"></div>
+      <div class="card">
+        <div class="section-title" style="margin-top:0">How to use this tracker</div>
+        <p class="small">Mark an opera as <strong>Seen Live</strong>, <strong>Listened</strong>, or both. Add a rating, the production or recording you used, and your notes. For books, mark <strong>Planned</strong>, <strong>Reading</strong>, or <strong>Read</strong> and add notes or takeaways.</p>
+        <p class="small">The “Recording links” buttons open searches for famous recordings or reference pages. You can replace the text in the notes field with your preferred conductors, singers, editions, or productions.</p>
+      </div>
+    </section>
+
+    <div class="footer-note">Single-file app. Save this as <code>index.html</code> and deploy anywhere static, including GitHub Pages.</div>
+  </div>
+
+<script>
+const DEFAULT_DATA = {
+  operas: [
+    {id:"op1", title:"La Traviata", composer:"Giuseppe Verdi", year:1853, country:"Italy", era:"Romantic", notes:"", production:"", rating:"", statusSeen:false, statusListened:false, planned:false, links:[["Recording search","https://www.google.com/search?q=La+Traviata+famous+recording"],["Wikipedia","https://en.wikipedia.org/wiki/La_traviata"]]},
+    {id:"op2", title:"Rigoletto", composer:"Giuseppe Verdi", year:1851, country:"Italy", era:"Romantic", notes:"", production:"", rating:"", statusSeen:false, statusListened:false, planned:false, links:[["Recording search","https://www.google.com/search?q=Rigoletto+famous+recording"],["Wikipedia","https://en.wikipedia.org/wiki/Rigoletto"]]},
+    {id:"op3", title:"Aida", composer:"Giuseppe Verdi", year:1871, country:"Italy", era:"Romantic", notes:"", production:"", rating:"", statusSeen:false, statusListened:false, planned:false, links:[["Recording search","https://www.google.com/search?q=Aida+famous+recording"],["Wikipedia","https://en.wikipedia.org/wiki/Aida"]]},
+    {id:"op4", title:"Il Trovatore", composer:"Giuseppe Verdi", year:1853, country:"Italy", era:"Romantic", notes:"", production:"", rating:"", statusSeen:false, statusListened:false, planned:false, links:[["Recording search","https://www.google.com/search?q=Il+Trovatore+famous+recording"],["Wikipedia","https://en.wikipedia.org/wiki/Il_trovatore"]]},
+    {id:"op5", title:"Otello", composer:"Giuseppe Verdi", year:1887, country:"Italy", era:"Romantic", notes:"", production:"", rating:"", statusSeen:false, statusListened:false, planned:false, links:[["Recording search","https://www.google.com/search?q=Otello+Verdi+famous+recording"],["Wikipedia","https://en.wikipedia.org/wiki/Otello"]]},
+    {id:"op6", title:"Falstaff", composer:"Giuseppe Verdi", year:1893, country:"Italy", era:"Romantic", notes:"", production:"", rating:"", statusSeen:false, statusListened:false, planned:false, links:[["Recording search","https://www.google.com/search?q=Falstaff+Verdi+famous+recording"],["Wikipedia","https://en.wikipedia.org/wiki/Falstaff_(opera)"]]},
+
+    {id:"op7", title:"The Marriage of Figaro", composer:"Wolfgang Amadeus Mozart", year:1786, country:"Austria", era:"Classical", notes:"", production:"", rating:"", statusSeen:false, statusListened:false, planned:false, links:[["Recording search","https://www.google.com/search?q=Marriage+of+Figaro+famous+recording"],["Wikipedia","https://en.wikipedia.org/wiki/The_Marriage_of_Figaro"]]},
+    {id:"op8", title:"Don Giovanni", composer:"Wolfgang Amadeus Mozart", year:1787, country:"Austria", era:"Classical", notes:"", production:"", rating:"", statusSeen:false, statusListened:false, planned:false, links:[["Recording search","https://www.google.com/search?q=Don+Giovanni+famous+recording"],["Wikipedia","https://en.wikipedia.org/wiki/Don_Giovanni"]]},
+    {id:"op9", title:"The Magic Flute", composer:"Wolfgang Amadeus Mozart", year:1791, country:"Austria", era:"Classical", notes:"", production:"", rating:"", statusSeen:false, statusListened:false, planned:false, links:[["Recording search","https://www.google.com/search?q=Magic+Flute+famous+recording"],["Wikipedia","https://en.wikipedia.org/wiki/The_Magic_Flute"]]},
+    {id:"op10", title:"Così fan tutte", composer:"Wolfgang Amadeus Mozart", year:1790, country:"Austria", era:"Classical", notes:"", production:"", rating:"", statusSeen:false, statusListened:false, planned:false, links:[["Recording search","https://www.google.com/search?q=Cosi+fan+tutte+famous+recording"],["Wikipedia","https://en.wikipedia.org/wiki/Cos%C3%AC_fan_tutte"]]},
+
+    {id:"op11", title:"La Bohème", composer:"Giacomo Puccini", year:1896, country:"Italy", era:"Romantic", notes:"", production:"", rating:"", statusSeen:false, statusListened:false, planned:false, links:[["Recording search","https://www.google.com/search?q=La+Boheme+famous+recording"],["Wikipedia","https://en.wikipedia.org/wiki/La_boh%C3%A8me"]]},
+    {id:"op12", title:"Tosca", composer:"Giacomo Puccini", year:1900, country:"Italy", era:"Late Romantic", notes:"", production:"", rating:"", statusSeen:false, statusListened:false, planned:false, links:[["Recording search","https://www.google.com/search?q=Tosca+famous+recording"],["Wikipedia","https://en.wikipedia.org/wiki/Tosca"]]},
+    {id:"op13", title:"Madama Butterfly", composer:"Giacomo Puccini", year:1904, country:"Italy", era:"Late Romantic", notes:"", production:"", rating:"", statusSeen:false, statusListened:false, planned:false, links:[["Recording search","https://www.google.com/search?q=Madama+Butterfly+famous+recording"],["Wikipedia","https://en.wikipedia.org/wiki/Madama_Butterfly"]]},
+    {id:"op14", title:"Turandot", composer:"Giacomo Puccini", year:1926, country:"Italy", era:"20th Century", notes:"", production:"", rating:"", statusSeen:false, statusListened:false, planned:false, links:[["Recording search","https://www.google.com/search?q=Turandot+famous+recording"],["Wikipedia","https://en.wikipedia.org/wiki/Turandot"]]},
+
+    {id:"op15", title:"Cavalleria rusticana", composer:"Pietro Mascagni", year:1890, country:"Italy", era:"Verismo", notes:"", production:"", rating:"", statusSeen:false, statusListened:false, planned:false, links:[["Recording search","https://www.google.com/search?q=Cavalleria+rusticana+famous+recording"],["Wikipedia","https://en.wikipedia.org/wiki/Cavalleria_rusticana"]]},
+    {id:"op16", title:"Pagliacci", composer:"Ruggero Leoncavallo", year:1892, country:"Italy", era:"Verismo", notes:"", production:"", rating:"", statusSeen:false, statusListened:false, planned:false, links:[["Recording search","https://www.google.com/search?q=Pagliacci+famous+recording"],["Wikipedia","https://en.wikipedia.org/wiki/Pagliacci"]]},
+
+    {id:"op17", title:"Die Walküre", composer:"Richard Wagner", year:1870, country:"Germany", era:"Romantic", notes:"", production:"", rating:"", statusSeen:false, statusListened:false, planned:false, links:[["Recording search","https://www.google.com/search?q=Die+Walkure+famous+recording"],["Wikipedia","https://en.wikipedia.org/wiki/Die_Walk%C3%BCre"]]},
+    {id:"op18", title:"Tristan und Isolde", composer:"Richard Wagner", year:1865, country:"Germany", era:"Romantic", notes:"", production:"", rating:"", statusSeen:false, statusListened:false, planned:false, links:[["Recording search","https://www.google.com/search?q=Tristan+und+Isolde+famous+recording"],["Wikipedia","https://en.wikipedia.org/wiki/Tristan_und_Isolde"]]},
+    {id:"op19", title:"Parsifal", composer:"Richard Wagner", year:1882, country:"Germany", era:"Romantic", notes:"", production:"", rating:"", statusSeen:false, statusListened:false, planned:false, links:[["Recording search","https://www.google.com/search?q=Parsifal+famous+recording"],["Wikipedia","https://en.wikipedia.org/wiki/Parsifal"]]},
+
+    {id:"op20", title:"Fidelio", composer:"Ludwig van Beethoven", year:1805, country:"Germany", era:"Classical / Early Romantic", notes:"", production:"", rating:"", statusSeen:false, statusListened:false, planned:false, links:[["Recording search","https://www.google.com/search?q=Fidelio+famous+recording"],["Wikipedia","https://en.wikipedia.org/wiki/Fidelio"]]},
+
+    {id:"op21", title:"Carmen", composer:"Georges Bizet", year:1875, country:"France", era:"Romantic", notes:"", production:"", rating:"", statusSeen:false, statusListened:false, planned:false, links:[["Recording search","https://www.google.com/search?q=Carmen+opera+famous+recording"],["Wikipedia","https://en.wikipedia.org/wiki/Carmen"]]},
+    {id:"op22", title:"Faust", composer:"Charles Gounod", year:1859, country:"France", era:"Romantic", notes:"", production:"", rating:"", statusSeen:false, statusListened:false, planned:false, links:[["Recording search","https://www.google.com/search?q=Faust+Gounod+famous+recording"],["Wikipedia","https://en.wikipedia.org/wiki/Faust_(opera)"]]},
+    {id:"op23", title:"The Tales of Hoffmann", composer:"Jacques Offenbach", year:1881, country:"France", era:"Romantic", notes:"", production:"", rating:"", statusSeen:false, statusListened:false, planned:false, links:[["Recording search","https://www.google.com/search?q=Tales+of+Hoffmann+famous+recording"],["Wikipedia","https://en.wikipedia.org/wiki/The_Tales_of_Hoffmann"]]},
+    {id:"op24", title:"Pelléas et Mélisande", composer:"Claude Debussy", year:1902, country:"France", era:"Modern", notes:"", production:"", rating:"", statusSeen:false, statusListened:false, planned:false, links:[["Recording search","https://www.google.com/search?q=Pelleas+et+Melisande+famous+recording"],["Wikipedia","https://en.wikipedia.org/wiki/Pell%C3%A9as_et_M%C3%A9lisande_(opera)"]]},
+
+    {id:"op25", title:"Eugene Onegin", composer:"Pyotr Ilyich Tchaikovsky", year:1879, country:"Russia", era:"Romantic", notes:"", production:"", rating:"", statusSeen:false, statusListened:false, planned:false, links:[["Recording search","https://www.google.com/search?q=Eugene+Onegin+opera+famous+recording"],["Wikipedia","https://en.wikipedia.org/wiki/Eugene_Onegin_(opera)"]]},
+    {id:"op26", title:"Boris Godunov", composer:"Modest Mussorgsky", year:1874, country:"Russia", era:"Romantic", notes:"", production:"", rating:"", statusSeen:false, statusListened:false, planned:false, links:[["Recording search","https://www.google.com/search?q=Boris+Godunov+famous+recording"],["Wikipedia","https://en.wikipedia.org/wiki/Boris_Godunov_(opera)"]]},
+    {id:"op27", title:"The Bartered Bride", composer:"Bedřich Smetana", year:1866, country:"Czech Republic", era:"Romantic", notes:"", production:"", rating:"", statusSeen:false, statusListened:false, planned:false, links:[["Recording search","https://www.google.com/search?q=Bartered+Bride+famous+recording"],["Wikipedia","https://en.wikipedia.org/wiki/The_Bartered_Bride"]]},
+    {id:"op28", title:"Jenůfa", composer:"Leoš Janáček", year:1904, country:"Czech Republic", era:"Modern", notes:"", production:"", rating:"", statusSeen:false, statusListened:false, planned:false, links:[["Recording search","https://www.google.com/search?q=Jenufa+famous+recording"],["Wikipedia","https://en.wikipedia.org/wiki/Jej%C3%AD_pastorky%C5%88a"]]}
+  ],
+  books: [
+    {id:"bk1", title:"The Rest Is Noise", author:"Alex Ross", topic:"20th-century music and cultural context", notes:"", rating:"", status:"planned"},
+    {id:"bk2", title:"Opera as Drama", author:"Joseph Kerman", topic:"How opera works as theater", notes:"", rating:"", status:"planned"},
+    {id:"bk3", title:"A History of Opera", author:"Carolyn Abbate and Roger Parker", topic:"Broad history of the art form", notes:"", rating:"", status:"planned"},
+    {id:"bk4", title:"Verdi: A Biography", author:"Mary Jane Phillips-Matz", topic:"Verdi", notes:"", rating:"", status:"planned"},
+    {id:"bk5", title:"Mozart's Operas", author:"David Cairns", topic:"Mozart", notes:"", rating:"", status:"planned"},
+    {id:"bk6", title:"The Complete Operas of Verdi", author:"Charles Osborne", topic:"Reference / Verdi", notes:"", rating:"", status:"planned"},
+    {id:"bk7", title:"The Complete Operas of Mozart", author:"Charles Osborne", topic:"Reference / Mozart", notes:"", rating:"", status:"planned"},
+    {id:"bk8", title:"Wagner Nights", author:"Ernest Newman", topic:"Wagner criticism and appreciation", notes:"", rating:"", status:"planned"},
+    {id:"bk9", title:"Everything You Ever Wanted to Know About Opera", author:"Denis Forman", topic:"Accessible opera guide", notes:"", rating:"", status:"planned"},
+    {id:"bk10", title:"The Oxford Illustrated History of Opera", author:"Roger Parker (ed.)", topic:"Historical survey", notes:"", rating:"", status:"planned"}
+  ]
+};
+
+const STORAGE_KEY = "operaTrackerData_v1";
+
+function deepCopy(obj){ return JSON.parse(JSON.stringify(obj)); }
+
+function loadData(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return deepCopy(DEFAULT_DATA);
+    const parsed = JSON.parse(raw);
+    return {
+      operas: DEFAULT_DATA.operas.map(d => ({...d, ...(parsed.operas||[]).find(x=>x.id===d.id)})),
+      books: DEFAULT_DATA.books.map(d => ({...d, ...(parsed.books||[]).find(x=>x.id===d.id)}))
+    };
+  }catch(e){
+    return deepCopy(DEFAULT_DATA);
+  }
+}
+
+let data = loadData();
+
+function saveData(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+}
+
+function uniqueSorted(arr){
+  return ["all", ...Array.from(new Set(arr)).sort((a,b)=>a.localeCompare(b))];
+}
+
+function setSelectOptions(selectEl, values, allLabel){
+  const current = selectEl.value || "all";
+  selectEl.innerHTML = "";
+  values.forEach(v=>{
+    const opt = document.createElement("option");
+    opt.value = v;
+    opt.textContent = v === "all" ? allLabel : v;
+    selectEl.appendChild(opt);
+  });
+  selectEl.value = values.includes(current) ? current : "all";
+}
+
+function statusLabel(op){
+  if(op.statusSeen && op.statusListened) return "Seen + listened";
+  if(op.statusSeen) return "Seen live";
+  if(op.statusListened) return "Listened";
+  if(op.planned) return "Planned";
+  return "Untracked";
+}
+
+function bookStatusLabel(book){
+  if(book.status === "read") return "Read";
+  if(book.status === "reading") return "Currently reading";
+  if(book.status === "planned") return "Planned";
+  return "Untracked";
+}
+
+function operaMatches(op){
+  const q = document.getElementById("operaSearch").value.trim().toLowerCase();
+  const composer = document.getElementById("composerFilter").value;
+  const country = document.getElementById("countryFilter").value;
+  const era = document.getElementById("eraFilter").value;
+  const status = document.getElementById("operaStatusFilter").value;
+  const hay = [op.title, op.composer, op.country, op.era].join(" ").toLowerCase();
+  const qOk = !q || hay.includes(q);
+  const composerOk = composer === "all" || op.composer === composer;
+  const countryOk = country === "all" || op.country === country;
+  const eraOk = era === "all" || op.era === era;
+  let statusOk = true;
+  if(status === "untracked") statusOk = !op.statusSeen && !op.statusListened && !op.planned;
+  if(status === "seen") statusOk = op.statusSeen && !op.statusListened;
+  if(status === "listened") statusOk = op.statusListened && !op.statusSeen;
+  if(status === "both") statusOk = op.statusSeen && op.statusListened;
+  if(status === "planned") statusOk = op.planned;
+  return qOk && composerOk && countryOk && eraOk && statusOk;
+}
+
+function bookMatches(book){
+  const q = document.getElementById("bookSearch").value.trim().toLowerCase();
+  const status = document.getElementById("bookStatusFilter").value;
+  const hay = [book.title, book.author, book.topic].join(" ").toLowerCase();
+  const qOk = !q || hay.includes(q);
+  let statusOk = true;
+  if(status === "untracked") statusOk = !book.status || book.status === "untracked";
+  if(status === "reading") statusOk = book.status === "reading";
+  if(status === "read") statusOk = book.status === "read";
+  if(status === "planned") statusOk = book.status === "planned";
+  return qOk && statusOk;
+}
+
+function sortOperas(items){
+  const sort = document.getElementById("sortOperas").value;
+  const scoreStatus = (o)=> (o.statusSeen?2:0) + (o.statusListened?1:0) + (o.planned?0.2:0);
+  return items.sort((a,b)=>{
+    if(sort === "composer") return a.composer.localeCompare(b.composer) || a.title.localeCompare(b.title);
+    if(sort === "year") return a.year - b.year || a.title.localeCompare(b.title);
+    if(sort === "rating") return (Number(b.rating)||0) - (Number(a.rating)||0) || a.title.localeCompare(b.title);
+    if(sort === "status") return scoreStatus(b)-scoreStatus(a) || a.title.localeCompare(b.title);
+    return a.title.localeCompare(b.title);
+  });
+}
+
+function sortBooks(items){
+  const sort = document.getElementById("bookSort").value;
+  const scoreStatus = (b)=> ({read:3, reading:2, planned:1, untracked:0}[b.status || "untracked"]);
+  return items.sort((a,b)=>{
+    if(sort === "author") return a.author.localeCompare(b.author) || a.title.localeCompare(b.title);
+    if(sort === "rating") return (Number(b.rating)||0) - (Number(a.rating)||0) || a.title.localeCompare(b.title);
+    if(sort === "status") return scoreStatus(b)-scoreStatus(a) || a.title.localeCompare(b.title);
+    return a.title.localeCompare(b.title);
+  });
+}
+
+function renderOperaFilters(){
+  setSelectOptions(document.getElementById("composerFilter"), uniqueSorted(data.operas.map(o=>o.composer)), "All composers");
+  setSelectOptions(document.getElementById("countryFilter"), uniqueSorted(data.operas.map(o=>o.country)), "All countries");
+  setSelectOptions(document.getElementById("eraFilter"), uniqueSorted(data.operas.map(o=>o.era)), "All eras");
+}
+
+function operaCard(op){
+  const card = document.createElement("div");
+  card.className = "card";
+  card.innerHTML = `
+    <div class="title-row">
+      <div>
+        <div class="title">${op.title}</div>
+        <div class="meta">
+          <span class="pill">${op.composer}</span>
+          <span class="pill">${op.year}</span>
+          <span class="pill">${op.country}</span>
+          <span class="pill">${op.era}</span>
+        </div>
+      </div>
+      <div class="pill">${statusLabel(op)}</div>
+    </div>
+
+    <div class="row-3">
+      <div class="field">
+        <label>Seen live</label>
+        <select data-field="statusSeen">
+          <option value="false" ${!op.statusSeen ? "selected":""}>No</option>
+          <option value="true" ${op.statusSeen ? "selected":""}>Yes</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Listened</label>
+        <select data-field="statusListened">
+          <option value="false" ${!op.statusListened ? "selected":""}>No</option>
+          <option value="true" ${op.statusListened ? "selected":""}>Yes</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Planned</label>
+        <select data-field="planned">
+          <option value="false" ${!op.planned ? "selected":""}>No</option>
+          <option value="true" ${op.planned ? "selected":""}>Yes</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label>Rating (1-5)</label>
+        <select data-field="rating">
+          <option value="" ${op.rating === "" ? "selected":""}>—</option>
+          <option value="1" ${op.rating == 1 ? "selected":""}>1</option>
+          <option value="2" ${op.rating == 2 ? "selected":""}>2</option>
+          <option value="3" ${op.rating == 3 ? "selected":""}>3</option>
+          <option value="4" ${op.rating == 4 ? "selected":""}>4</option>
+          <option value="5" ${op.rating == 5 ? "selected":""}>5</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Production / recording</label>
+        <input type="text" data-field="production" value="${escapeHtml(op.production)}" placeholder="Conductor, cast, venue, company..." />
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Notes</label>
+      <textarea data-field="notes" placeholder="What stood out? Favorite aria? Production concept?">${escapeHtml(op.notes)}</textarea>
+    </div>
+
+    <div class="inline">
+      ${op.links.map(([name,url])=>`<a href="${url}" target="_blank" rel="noopener"><button type="button">${name}</button></a>`).join("")}
+    </div>
+  `;
+
+  card.querySelectorAll("[data-field]").forEach(el=>{
+    const field = el.getAttribute("data-field");
+    const eventName = el.tagName === "TEXTAREA" || el.tagName === "INPUT" ? "input" : "change";
+    el.addEventListener(eventName, ()=>{
+      let value = el.value;
+      if(value === "true") value = true;
+      if(value === "false") value = false;
+      op[field] = value;
+      saveData();
+      renderAll();
+    });
+  });
+
+  return card;
+}
+
+function bookCard(book){
+  const card = document.createElement("div");
+  card.className = "card";
+  card.innerHTML = `
+    <div class="title-row">
+      <div>
+        <div class="title">${book.title}</div>
+        <div class="meta">
+          <span class="pill">${book.author}</span>
+          <span class="pill">${book.topic}</span>
+        </div>
+      </div>
+      <div class="pill">${bookStatusLabel(book)}</div>
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label>Status</label>
+        <select data-field="status">
+          <option value="planned" ${book.status==="planned" ? "selected":""}>Planned</option>
+          <option value="reading" ${book.status==="reading" ? "selected":""}>Currently reading</option>
+          <option value="read" ${book.status==="read" ? "selected":""}>Read</option>
+          <option value="untracked" ${(!book.status || book.status==="untracked") ? "selected":""}>Untracked</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Rating (1-5)</label>
+        <select data-field="rating">
+          <option value="" ${book.rating === "" ? "selected":""}>—</option>
+          <option value="1" ${book.rating == 1 ? "selected":""}>1</option>
+          <option value="2" ${book.rating == 2 ? "selected":""}>2</option>
+          <option value="3" ${book.rating == 3 ? "selected":""}>3</option>
+          <option value="4" ${book.rating == 4 ? "selected":""}>4</option>
+          <option value="5" ${book.rating == 5 ? "selected":""}>5</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Notes</label>
+      <textarea data-field="notes" placeholder="Key arguments, takeaways, questions, favorite chapter...">${escapeHtml(book.notes)}</textarea>
+    </div>
+  `;
+  card.querySelectorAll("[data-field]").forEach(el=>{
+    const field = el.getAttribute("data-field");
+    const eventName = el.tagName === "TEXTAREA" ? "input" : "change";
+    el.addEventListener(eventName, ()=>{
+      book[field] = el.value;
+      saveData();
+      renderAll();
+    });
+  });
+  return card;
+}
+
+function renderOperaStats(filtered){
+  const total = data.operas.length;
+  const seen = data.operas.filter(o=>o.statusSeen).length;
+  const listened = data.operas.filter(o=>o.statusListened).length;
+  const both = data.operas.filter(o=>o.statusSeen && o.statusListened).length;
+  const planned = data.operas.filter(o=>o.planned).length;
+  const avg = average(data.operas.map(o=>Number(o.rating)).filter(Boolean));
+  document.getElementById("operaStats").innerHTML = statBox("Total operas", total) + statBox("Seen live", seen) + statBox("Listened", listened) + statBox("Seen + listened", both) + statBox("Planned", planned) + statBox("Avg rating", avg ? avg.toFixed(1) : "—");
+}
+
+function renderBookStats(){
+  const total = data.books.length;
+  const reading = data.books.filter(b=>b.status==="reading").length;
+  const read = data.books.filter(b=>b.status==="read").length;
+  const planned = data.books.filter(b=>b.status==="planned").length;
+  const avg = average(data.books.map(b=>Number(b.rating)).filter(Boolean));
+  document.getElementById("bookStats").innerHTML = statBox("Total books", total) + statBox("Reading", reading) + statBox("Read", read) + statBox("Planned", planned) + statBox("Avg rating", avg ? avg.toFixed(1) : "—");
+}
+
+function renderAllStats(){
+  const seen = data.operas.filter(o=>o.statusSeen).length;
+  const listened = data.operas.filter(o=>o.statusListened).length;
+  const read = data.books.filter(b=>b.status==="read").length;
+  const reading = data.books.filter(b=>b.status==="reading").length;
+  const topComposer = mostCommon(data.operas.filter(o=>o.statusSeen||o.statusListened).map(o=>o.composer)) || "—";
+  const topCountry = mostCommon(data.operas.filter(o=>o.statusSeen||o.statusListened).map(o=>o.country)) || "—";
+  document.getElementById("allStats").innerHTML =
+    statBox("Operas seen live", seen) +
+    statBox("Operas listened", listened) +
+    statBox("Books read", read) +
+    statBox("Books reading", reading) +
+    statBox("Top tracked composer", topComposer) +
+    statBox("Most explored country", topCountry);
+}
+
+function statBox(label, value){
+  return `<div class="stat"><div class="small">${label}</div><div class="k">${value}</div></div>`;
+}
+
+function average(arr){
+  if(!arr.length) return null;
+  return arr.reduce((a,b)=>a+b,0)/arr.length;
+}
+
+function mostCommon(arr){
+  if(!arr.length) return null;
+  const map = {};
+  arr.forEach(x=>map[x]=(map[x]||0)+1);
+  return Object.entries(map).sort((a,b)=>b[1]-a[1])[0][0];
+}
+
+function renderOperas(){
+  renderOperaFilters();
+  const grid = document.getElementById("operaGrid");
+  grid.innerHTML = "";
+  const items = sortOperas(data.operas.filter(operaMatches));
+  items.forEach(op=>grid.appendChild(operaCard(op)));
+  renderOperaStats(items);
+}
+
+function renderBooks(){
+  const grid = document.getElementById("bookGrid");
+  grid.innerHTML = "";
+  const items = sortBooks(data.books.filter(bookMatches));
+  items.forEach(book=>grid.appendChild(bookCard(book)));
+  renderBookStats();
+}
+
+function renderAll(){
+  renderOperas();
+  renderBooks();
+  renderAllStats();
+}
+
+function escapeHtml(s){
+  return String(s ?? "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;");
+}
+
+document.querySelectorAll(".tab").forEach(btn=>{
+  btn.addEventListener("click", ()=>{
+    document.querySelectorAll(".tab").forEach(b=>b.classList.remove("active"));
+    btn.classList.add("active");
+    const tab = btn.dataset.tab;
+    document.getElementById("operasTab").classList.toggle("hidden", tab !== "operas");
+    document.getElementById("booksTab").classList.toggle("hidden", tab !== "books");
+    document.getElementById("statsTab").classList.toggle("hidden", tab !== "stats");
+  });
+});
+
+["operaSearch","composerFilter","countryFilter","eraFilter","operaStatusFilter","sortOperas","bookSearch","bookStatusFilter","bookSort"].forEach(id=>{
+  document.getElementById(id).addEventListener("input", renderAll);
+  document.getElementById(id).addEventListener("change", renderAll);
+});
+
+document.getElementById("exportBtn").addEventListener("click", ()=>{
+  const payload = {
+    exportedAt: new Date().toISOString(),
+    app: "Opera Tracker",
+    data
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], {type:"application/json"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "opera-tracker-data.json";
+  a.click();
+  URL.revokeObjectURL(url);
+});
+
+document.getElementById("importFile").addEventListener("change", async (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  try{
+    const text = await file.text();
+    const parsed = JSON.parse(text);
+    const incoming = parsed.data ? parsed.data : parsed;
+    if(!incoming.operas || !incoming.books) throw new Error("Invalid file format");
+    data = {
+      operas: DEFAULT_DATA.operas.map(d => ({...d, ...(incoming.operas||[]).find(x=>x.id===d.id)})),
+      books: DEFAULT_DATA.books.map(d => ({...d, ...(incoming.books||[]).find(x=>x.id===d.id)}))
+    };
+    saveData();
+    renderAll();
+    alert("Import complete.");
+  }catch(err){
+    alert("Could not import that file. Make sure it is a valid Opera Tracker export.");
+  }finally{
+    e.target.value = "";
+  }
+});
+
+document.getElementById("resetBtn").addEventListener("click", ()=>{
+  if(!confirm("Reset all saved progress and return to the default list?")) return;
+  data = deepCopy(DEFAULT_DATA);
+  saveData();
+  renderAll();
+});
+
+renderAll();
+</script>
+</body>
+</html>
