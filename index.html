@@ -123,6 +123,9 @@
     .danger{border-color:#7f1d1d;color:#fecaca}
     .soft-danger{background:#2a1620;border-color:#7f1d1d;color:#fecaca}
     .helper{margin-top:6px;color:var(--muted);font-size:.8rem}
+    .collapse-body.hidden{display:none}
+    .collapse-toggle{width:100%;text-align:left;display:flex;justify-content:space-between;align-items:center}
+    .chev{font-size:1.1rem;color:var(--muted)}
     @media (max-width:700px){
       .row,.row-3{grid-template-columns:1fr}
     }
@@ -752,92 +755,100 @@ function addOperaCard(){
   const card = document.createElement("div");
   card.className = "card add-card";
   card.innerHTML = `
-    <div class="title-row">
-      <div>
-        <div class="title">Add a custom opera</div>
-        <div class="small">Use this for operas not already in the starter list.</div>
-      </div>
-      <div class="pill">New</div>
-    </div>
+    <button type="button" class="collapse-toggle" id="toggleOperaAdd">
+      <span>
+        <span class="title">Add a custom opera</span><br />
+        <span class="small">Use this for operas not already in the starter list.</span>
+      </span>
+      <span class="chev" id="operaAddChev">▸</span>
+    </button>
 
-    <div class="row">
-      <div class="field">
-        <label>Title</label>
-        <input id="newOperaTitle" type="text" placeholder="Opera title" />
+    <div class="collapse-body hidden" id="operaAddBody">
+      <div class="row" style="margin-top:12px">
+        <div class="field">
+          <label>Title</label>
+          <input id="newOperaTitle" type="text" placeholder="Opera title" />
+        </div>
+        <div class="field">
+          <label>Composer</label>
+          <input id="newOperaComposer" type="text" placeholder="Composer" />
+        </div>
       </div>
-      <div class="field">
-        <label>Composer</label>
-        <input id="newOperaComposer" type="text" placeholder="Composer" />
-      </div>
-    </div>
 
-    <div class="row-3">
-      <div class="field">
-        <label>Year</label>
-        <input id="newOperaYear" type="number" placeholder="Year" />
+      <div class="row-3">
+        <div class="field">
+          <label>Year</label>
+          <input id="newOperaYear" type="number" placeholder="Year" />
+        </div>
+        <div class="field">
+          <label>Country</label>
+          <input id="newOperaCountry" type="text" placeholder="Country" />
+        </div>
+        <div class="field">
+          <label>Era</label>
+          <input id="newOperaEra" type="text" placeholder="Era" />
+        </div>
       </div>
-      <div class="field">
-        <label>Country</label>
-        <input id="newOperaCountry" type="text" placeholder="Country" />
-      </div>
-      <div class="field">
-        <label>Era</label>
-        <input id="newOperaEra" type="text" placeholder="Era" />
-      </div>
-    </div>
 
-    <div class="row-3">
-      <div class="field">
-        <label>Seen live</label>
-        <select id="newOperaSeen">
-          <option value="false" selected>No</option>
-          <option value="true">Yes</option>
-        </select>
+      <div class="row-3">
+        <div class="field">
+          <label>Seen live</label>
+          <select id="newOperaSeen">
+            <option value="false" selected>No</option>
+            <option value="true">Yes</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Listened</label>
+          <select id="newOperaListened">
+            <option value="false" selected>No</option>
+            <option value="true">Yes</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Planned</label>
+          <select id="newOperaPlanned">
+            <option value="false" selected>No</option>
+            <option value="true">Yes</option>
+          </select>
+        </div>
       </div>
-      <div class="field">
-        <label>Listened</label>
-        <select id="newOperaListened">
-          <option value="false" selected>No</option>
-          <option value="true">Yes</option>
-        </select>
-      </div>
-      <div class="field">
-        <label>Planned</label>
-        <select id="newOperaPlanned">
-          <option value="false" selected>No</option>
-          <option value="true">Yes</option>
-        </select>
-      </div>
-    </div>
 
-    <div class="row">
-      <div class="field">
-        <label>Rating (1-5)</label>
-        <select id="newOperaRating">
-          <option value="" selected>—</option>
-          <option value="1">1</option>
-          <option value="2">2</option>
-          <option value="3">3</option>
-          <option value="4">4</option>
-          <option value="5">5</option>
-        </select>
+      <div class="row">
+        <div class="field">
+          <label>Rating (1-5)</label>
+          <select id="newOperaRating">
+            <option value="" selected>—</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Production / recording</label>
+          <input id="newOperaProduction" type="text" placeholder="Conductor, cast, venue, company..." />
+        </div>
       </div>
+
       <div class="field">
-        <label>Production / recording</label>
-        <input id="newOperaProduction" type="text" placeholder="Conductor, cast, venue, company..." />
+        <label>Notes</label>
+        <textarea id="newOperaNotes" placeholder="Optional notes"></textarea>
       </div>
-    </div>
 
-    <div class="field">
-      <label>Notes</label>
-      <textarea id="newOperaNotes" placeholder="Optional notes"></textarea>
+      <div class="inline">
+        <button type="button" id="addOperaBtn">Add opera</button>
+      </div>
+      <div class="helper">Tip: once added, custom operas are fully editable and included in export/import.</div>
     </div>
-
-    <div class="inline">
-      <button type="button" id="addOperaBtn">Add opera</button>
-    </div>
-    <div class="helper">Tip: once added, custom operas are fully editable and included in export/import.</div>
   `;
+  const body = card.querySelector("#operaAddBody");
+  const chev = card.querySelector("#operaAddChev");
+  card.querySelector("#toggleOperaAdd").addEventListener("click", ()=>{
+    body.classList.toggle("hidden");
+    chev.textContent = body.classList.contains("hidden") ? "▸" : "▾";
+  });
   card.querySelector("#addOperaBtn").addEventListener("click", ()=>{
     const title = card.querySelector("#newOperaTitle").value.trim();
     if(!title){
@@ -870,66 +881,74 @@ function addBookCard(){
   const card = document.createElement("div");
   card.className = "card add-card";
   card.innerHTML = `
-    <div class="title-row">
-      <div>
-        <div class="title">Add a custom book</div>
-        <div class="small">Use this for books not already in the starter list.</div>
-      </div>
-      <div class="pill">New</div>
-    </div>
+    <button type="button" class="collapse-toggle" id="toggleBookAdd">
+      <span>
+        <span class="title">Add a custom book</span><br />
+        <span class="small">Use this for books not already in the starter list.</span>
+      </span>
+      <span class="chev" id="bookAddChev">▸</span>
+    </button>
 
-    <div class="row">
-      <div class="field">
-        <label>Title</label>
-        <input id="newBookTitle" type="text" placeholder="Book title" />
+    <div class="collapse-body hidden" id="bookAddBody">
+      <div class="row" style="margin-top:12px">
+        <div class="field">
+          <label>Title</label>
+          <input id="newBookTitle" type="text" placeholder="Book title" />
+        </div>
+        <div class="field">
+          <label>Author</label>
+          <input id="newBookAuthor" type="text" placeholder="Author" />
+        </div>
       </div>
-      <div class="field">
-        <label>Author</label>
-        <input id="newBookAuthor" type="text" placeholder="Author" />
-      </div>
-    </div>
 
-    <div class="row">
-      <div class="field">
-        <label>Topic</label>
-        <input id="newBookTopic" type="text" placeholder="Topic / focus" />
+      <div class="row">
+        <div class="field">
+          <label>Topic</label>
+          <input id="newBookTopic" type="text" placeholder="Topic / focus" />
+        </div>
+        <div class="field">
+          <label>Status</label>
+          <select id="newBookStatus">
+            <option value="planned" selected>Planned</option>
+            <option value="reading">Currently reading</option>
+            <option value="read">Read</option>
+            <option value="untracked">Untracked</option>
+          </select>
+        </div>
       </div>
-      <div class="field">
-        <label>Status</label>
-        <select id="newBookStatus">
-          <option value="planned" selected>Planned</option>
-          <option value="reading">Currently reading</option>
-          <option value="read">Read</option>
-          <option value="untracked">Untracked</option>
-        </select>
+
+      <div class="row">
+        <div class="field">
+          <label>Rating (1-5)</label>
+          <select id="newBookRating">
+            <option value="" selected>—</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+          </select>
+        </div>
+        <div class="field"></div>
       </div>
-    </div>
 
-    <div class="row">
       <div class="field">
-        <label>Rating (1-5)</label>
-        <select id="newBookRating">
-          <option value="" selected>—</option>
-          <option value="1">1</option>
-          <option value="2">2</option>
-          <option value="3">3</option>
-          <option value="4">4</option>
-          <option value="5">5</option>
-        </select>
+        <label>Notes</label>
+        <textarea id="newBookNotes" placeholder="Optional notes"></textarea>
       </div>
-      <div class="field"></div>
-    </div>
 
-    <div class="field">
-      <label>Notes</label>
-      <textarea id="newBookNotes" placeholder="Optional notes"></textarea>
+      <div class="inline">
+        <button type="button" id="addBookBtn">Add book</button>
+      </div>
+      <div class="helper">Tip: custom books are included in filters, stats, and export/import.</div>
     </div>
-
-    <div class="inline">
-      <button type="button" id="addBookBtn">Add book</button>
-    </div>
-    <div class="helper">Tip: custom books are included in filters, stats, and export/import.</div>
   `;
+  const body = card.querySelector("#bookAddBody");
+  const chev = card.querySelector("#bookAddChev");
+  card.querySelector("#toggleBookAdd").addEventListener("click", ()=>{
+    body.classList.toggle("hidden");
+    chev.textContent = body.classList.contains("hidden") ? "▸" : "▾";
+  });
   card.querySelector("#addBookBtn").addEventListener("click", ()=>{
     const title = card.querySelector("#newBookTitle").value.trim();
     if(!title){
