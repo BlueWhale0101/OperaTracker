@@ -4,6 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Opera Tracker</title>
+  <meta name="theme-color" content="#0f1220" />
+  <meta name="description" content="Track operas you've attended or listened to, books you've read, and your progress across the canon." />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+
   <style>
     :root{
       --bg:#0f1220;
@@ -1053,6 +1059,14 @@ document.getElementById("resetBtn").addEventListener("click", ()=>{
 });
 
 renderAll();
+
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./service-worker.js').catch(() => {});
+  });
+}
+
 </script>
 </body>
 </html>
