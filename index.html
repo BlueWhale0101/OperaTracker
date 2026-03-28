@@ -859,9 +859,12 @@ function deleteBook(id){
 function operaCard(op){
   const card = document.createElement("div");
   card.className = "card";
+
+  const expandedDefault = false;
+
   card.innerHTML = `
-    <div class="title-row">
-      <div>
+    <button type="button" class="opera-summary-toggle js-opera-toggle" aria-expanded="${expandedDefault ? "true" : "false"}">
+      <div class="opera-summary-main">
         <div class="title">${escapeHtml(op.title)} ${op.custom ? '<span class="pill">Custom</span>' : ''}</div>
         <div class="meta">
           ${op.composer ? `<span class="pill">${escapeHtml(op.composer)}</span>` : ''}
@@ -870,125 +873,140 @@ function operaCard(op){
           ${op.era ? `<span class="pill">${escapeHtml(op.era)}</span>` : ''}
         </div>
       </div>
-      <div class="pill js-status-pill">${statusLabel(op)}</div>
-    </div>
+      <div class="opera-summary-right">
+        <div class="pill js-status-pill">${statusLabel(op)}</div>
+        <span class="chev js-opera-chev">${expandedDefault ? "▾" : "▸"}</span>
+      </div>
+    </button>
 
-    <div class="row">
-      <div class="field">
-        <label>Title</label>
-        <input type="text" data-field="title" value="${escapeHtml(op.title)}" placeholder="Opera title" />
-      </div>
-      <div class="field">
-        <label>Composer</label>
-        <input type="text" data-field="composer" value="${escapeHtml(op.composer)}" placeholder="Composer" />
-      </div>
-    </div>
-
-    <div class="row-3">
-      <div class="field">
-        <label>Year</label>
-        <input type="number" data-field="year" value="${escapeHtml(op.year)}" placeholder="Year" />
-      </div>
-      <div class="field">
-        <label>Country</label>
-        <input type="text" data-field="country" value="${escapeHtml(op.country)}" placeholder="Country" />
-      </div>
-      <div class="field">
-        <label>Era</label>
-        <input type="text" data-field="era" value="${escapeHtml(op.era)}" placeholder="Era" />
-      </div>
-    </div>
-
-    <div class="row-3">
-      <div class="field">
-        <label>Seen live</label>
-        <select data-field="statusSeen">
-          <option value="false" ${!op.statusSeen ? "selected":""}>No</option>
-          <option value="true" ${op.statusSeen ? "selected":""}>Yes</option>
-        </select>
-      </div>
-      <div class="field">
-        <label>Listened</label>
-        <select data-field="statusListened">
-          <option value="false" ${!op.statusListened ? "selected":""}>No</option>
-          <option value="true" ${op.statusListened ? "selected":""}>Yes</option>
-        </select>
-      </div>
-      <div class="field">
-        <label>Planned</label>
-        <select data-field="planned">
-          <option value="false" ${!op.planned ? "selected":""}>No</option>
-          <option value="true" ${op.planned ? "selected":""}>Yes</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="row">
-      <div class="field">
-        <label>Rating (1-5)</label>
-        <select data-field="rating">
-          <option value="" ${op.rating === "" ? "selected":""}>—</option>
-          <option value="1" ${String(op.rating) == "1" ? "selected":""}>1</option>
-          <option value="2" ${String(op.rating) == "2" ? "selected":""}>2</option>
-          <option value="3" ${String(op.rating) == "3" ? "selected":""}>3</option>
-          <option value="4" ${String(op.rating) == "4" ? "selected":""}>4</option>
-          <option value="5" ${String(op.rating) == "5" ? "selected":""}>5</option>
-        </select>
-      </div>
-      <div class="field">
-        <label>Production / recording</label>
-        <input type="text" data-field="production" value="${escapeHtml(op.production)}" placeholder="Conductor, cast, venue, company..." />
-      </div>
-    </div>
-
-    <div class="field">
-      <label>Notes</label>
-      <textarea data-field="notes" placeholder="What stood out? Favorite aria? Production concept?">${escapeHtml(op.notes)}</textarea>
-    </div>
-
-    <div class="guide-panel">
-      <button type="button" class="guide-toggle js-guide-toggle">
-        <span><strong>Guided listening</strong> <span class="small">Synopsis, listening prompts, and lecture-style starter links</span></span>
-        <span class="chev js-guide-chev">▸</span>
-      </button>
-      <div class="guide-body hidden">
-        <div class="guide-grid">
-          <div class="guide-box">
-            <h4>Story setup</h4>
-            <p>${escapeHtml(getGuidedInfo(op).story || "") || "Add your own synopsis or scene-by-scene setup here."}</p>
-          </div>
-          <div class="guide-box">
-            <h4>Why it matters</h4>
-            <p>${escapeHtml(getGuidedInfo(op).importance || "") || "Use this space for why the opera matters historically or musically."}</p>
-          </div>
-          <div class="guide-box">
-            <h4>Historical / artistic context</h4>
-            <p>${escapeHtml(getGuidedInfo(op).context || "") || "Add context on the composer, source text, politics, or premiere."}</p>
-          </div>
-          <div class="guide-box">
-            <h4>What to listen for</h4>
-            <p>${escapeHtml(getGuidedInfo(op).listen || "") || "Add recurring motifs, ensembles, harmonic language, orchestral color, or vocal writing."}</p>
-          </div>
-          <div class="guide-box" style="grid-column:1 / -1">
-            <h4>Key scenes / moments</h4>
-            ${
-              (getGuidedInfo(op).moments || []).length
-                ? `<ul class="mini-list">${getGuidedInfo(op).moments.map(m => `<li>${escapeHtml(m)}</li>`).join("")}</ul>`
-                : `<p>Add act breaks, arias, confrontations, and scenes you want to revisit.</p>`
-            }
-          </div>
+    <div class="opera-card-body ${expandedDefault ? "" : "hidden"}">
+      <div class="row">
+        <div class="field">
+          <label>Title</label>
+          <input type="text" data-field="title" value="${escapeHtml(op.title)}" placeholder="Opera title" />
         </div>
-        <div class="guide-links">
-          ${buildStarterLinks(op).map(([name,url])=>`<a href="${url}" target="_blank" rel="noopener"><button type="button">${escapeHtml(name)}</button></a>`).join("")}
+        <div class="field">
+          <label>Composer</label>
+          <input type="text" data-field="composer" value="${escapeHtml(op.composer)}" placeholder="Composer" />
         </div>
       </div>
-    </div>
 
-    <div class="inline">
-      ${(op.links || []).map(([name,url])=>`<a href="${url}" target="_blank" rel="noopener"><button type="button">${escapeHtml(name)}</button></a>`).join("")}
-      ${op.custom ? `<button type="button" class="soft-danger js-delete-opera">Delete</button>` : ""}
+      <div class="row-3">
+        <div class="field">
+          <label>Year</label>
+          <input type="number" data-field="year" value="${escapeHtml(op.year)}" placeholder="Year" />
+        </div>
+        <div class="field">
+          <label>Country</label>
+          <input type="text" data-field="country" value="${escapeHtml(op.country)}" placeholder="Country" />
+        </div>
+        <div class="field">
+          <label>Era</label>
+          <input type="text" data-field="era" value="${escapeHtml(op.era)}" placeholder="Era" />
+        </div>
+      </div>
+
+      <div class="row-3">
+        <div class="field">
+          <label>Seen live</label>
+          <select data-field="statusSeen">
+            <option value="false" ${!op.statusSeen ? "selected":""}>No</option>
+            <option value="true" ${op.statusSeen ? "selected":""}>Yes</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Listened</label>
+          <select data-field="statusListened">
+            <option value="false" ${!op.statusListened ? "selected":""}>No</option>
+            <option value="true" ${op.statusListened ? "selected":""}>Yes</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Planned</label>
+          <select data-field="planned">
+            <option value="false" ${!op.planned ? "selected":""}>No</option>
+            <option value="true" ${op.planned ? "selected":""}>Yes</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="field">
+          <label>Rating (1-5)</label>
+          <select data-field="rating">
+            <option value="" ${op.rating === "" ? "selected":""}>—</option>
+            <option value="1" ${String(op.rating) == "1" ? "selected":""}>1</option>
+            <option value="2" ${String(op.rating) == "2" ? "selected":""}>2</option>
+            <option value="3" ${String(op.rating) == "3" ? "selected":""}>3</option>
+            <option value="4" ${String(op.rating) == "4" ? "selected":""}>4</option>
+            <option value="5" ${String(op.rating) == "5" ? "selected":""}>5</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Production / recording</label>
+          <input type="text" data-field="production" value="${escapeHtml(op.production)}" placeholder="Conductor, cast, venue, company..." />
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Notes</label>
+        <textarea data-field="notes" placeholder="What stood out? Favorite aria? Production concept?">${escapeHtml(op.notes)}</textarea>
+      </div>
+
+      <div class="guide-panel">
+        <button type="button" class="guide-toggle js-guide-toggle">
+          <span><strong>Guided listening</strong> <span class="small">Synopsis, listening prompts, and lecture-style starter links</span></span>
+          <span class="chev js-guide-chev">▸</span>
+        </button>
+        <div class="guide-body hidden">
+          <div class="guide-grid">
+            <div class="guide-box">
+              <h4>Story setup</h4>
+              <p>${escapeHtml(getGuidedInfo(op).story || "") || "Add your own synopsis or scene-by-scene setup here."}</p>
+            </div>
+            <div class="guide-box">
+              <h4>Why it matters</h4>
+              <p>${escapeHtml(getGuidedInfo(op).importance || "") || "Use this space for why the opera matters historically or musically."}</p>
+            </div>
+            <div class="guide-box">
+              <h4>Historical / artistic context</h4>
+              <p>${escapeHtml(getGuidedInfo(op).context || "") || "Add context on the composer, source text, politics, or premiere."}</p>
+            </div>
+            <div class="guide-box">
+              <h4>What to listen for</h4>
+              <p>${escapeHtml(getGuidedInfo(op).listen || "") || "Add recurring motifs, ensembles, harmonic language, orchestral color, or vocal writing."}</p>
+            </div>
+            <div class="guide-box" style="grid-column:1 / -1">
+              <h4>Key scenes / moments</h4>
+              ${
+                (getGuidedInfo(op).moments || []).length
+                  ? `<ul class="mini-list">${getGuidedInfo(op).moments.map(m => `<li>${escapeHtml(m)}</li>`).join("")}</ul>`
+                  : `<p>Add act breaks, arias, confrontations, and scenes you want to revisit.</p>`
+              }
+            </div>
+          </div>
+          <div class="guide-links">
+            ${buildStarterLinks(op).map(([name,url])=>`<a href="${url}" target="_blank" rel="noopener"><button type="button">${escapeHtml(name)}</button></a>`).join("")}
+          </div>
+        </div>
+      </div>
+
+      <div class="inline">
+        ${(op.links || []).map(([name,url])=>`<a href="${url}" target="_blank" rel="noopener"><button type="button">${escapeHtml(name)}</button></a>`).join("")}
+        ${op.custom ? `<button type="button" class="soft-danger js-delete-opera">Delete</button>` : ""}
+      </div>
     </div>
   `;
+
+  const summaryToggle = card.querySelector(".js-opera-toggle");
+  const summaryBody = card.querySelector(".opera-card-body");
+  const summaryChev = card.querySelector(".js-opera-chev");
+  summaryToggle.addEventListener("click", ()=>{
+    summaryBody.classList.toggle("hidden");
+    const isHidden = summaryBody.classList.contains("hidden");
+    summaryChev.textContent = isHidden ? "▸" : "▾";
+    summaryToggle.setAttribute("aria-expanded", isHidden ? "false" : "true");
+  });
 
   card.querySelectorAll("[data-field]").forEach(el=>{
     const field = el.getAttribute("data-field");
@@ -1034,7 +1052,8 @@ function operaCard(op){
   const guideBody = card.querySelector(".guide-body");
   const guideChev = card.querySelector(".js-guide-chev");
   if (guideToggle && guideBody && guideChev) {
-    guideToggle.addEventListener("click", ()=>{
+    guideToggle.addEventListener("click", (e)=>{
+      e.stopPropagation();
       guideBody.classList.toggle("hidden");
       guideChev.textContent = guideBody.classList.contains("hidden") ? "▸" : "▾";
     });
