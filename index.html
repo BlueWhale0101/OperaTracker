@@ -1030,6 +1030,16 @@ function operaCard(op){
   const del = card.querySelector(".js-delete-opera");
   if(del) del.addEventListener("click", ()=>deleteOpera(op.id));
 
+  const guideToggle = card.querySelector(".js-guide-toggle");
+  const guideBody = card.querySelector(".guide-body");
+  const guideChev = card.querySelector(".js-guide-chev");
+  if (guideToggle && guideBody && guideChev) {
+    guideToggle.addEventListener("click", ()=>{
+      guideBody.classList.toggle("hidden");
+      guideChev.textContent = guideBody.classList.contains("hidden") ? "▸" : "▾";
+    });
+  }
+
   return card;
 }
 
