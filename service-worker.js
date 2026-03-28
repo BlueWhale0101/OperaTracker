@@ -1,4 +1,4 @@
-const CACHE_NAME = 'opera-tracker-v1';
+const CACHE_NAME = 'opera-tracker-v2';
 const ASSETS = [
   './',
   './index.html',
@@ -24,7 +24,6 @@ self.addEventListener('activate', event => {
 
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
-
   event.respondWith(
     caches.match(event.request).then(cached => {
       const fetchPromise = fetch(event.request)
@@ -34,7 +33,6 @@ self.addEventListener('fetch', event => {
           return networkResponse;
         })
         .catch(() => cached || caches.match('./index.html'));
-
       return cached || fetchPromise;
     })
   );

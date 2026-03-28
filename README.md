@@ -22,3 +22,4 @@ This package is ready for GitHub Pages.
 - The app stores data in the browser with localStorage.
 - Export your data regularly if you want backups across devices.
 - The service worker enables installability and basic offline caching.
+- This build adds guided listening panels and lecture-style starter links for the default opera list.

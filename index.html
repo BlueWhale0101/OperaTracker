@@ -9,7 +9,6 @@
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png" />
   <link rel="apple-touch-icon" href="icons/icon-192.png" />
-
   <style>
     :root{
       --bg:#0f1220;
@@ -132,8 +131,20 @@
     .collapse-body.hidden{display:none}
     .collapse-toggle{width:100%;text-align:left;display:flex;justify-content:space-between;align-items:center}
     .chev{font-size:1.1rem;color:var(--muted)}
+    .guide-panel{margin-top:10px;border-top:1px solid var(--border);padding-top:10px}
+    .guide-toggle{width:100%;text-align:left;display:flex;justify-content:space-between;align-items:center;background:#10162b}
+    .guide-body.hidden{display:none}
+    .guide-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+    .guide-box{background:#10162b;border:1px solid var(--border);border-radius:12px;padding:12px}
+    .guide-box h4{margin:0 0 6px;font-size:.95rem}
+    .guide-box p{margin:0;color:var(--muted);font-size:.9rem;line-height:1.4}
+    .guide-links{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+    .mini-list{margin:6px 0 0 18px;color:var(--muted);font-size:.9rem}
+    .mini-list li{margin:2px 0}
+
     @media (max-width:700px){
       .row,.row-3{grid-template-columns:1fr}
+      .guide-grid{grid-template-columns:1fr}
     }
   </style>
 </head>
@@ -274,6 +285,336 @@ const DEFAULT_DATA = {
     {id:"bk10", title:"The Oxford Illustrated History of Opera", author:"Roger Parker (ed.)", topic:"Historical survey", notes:"", rating:"", status:"planned", custom:false}
   ]
 };
+
+const GUIDED_DATA = {
+  "La Traviata": {
+    "story": "Parisian courtesan Violetta falls in love with Alfredo, but social pressure and sacrifice destroy their happiness.",
+    "importance": "A cornerstone of Verdi’s middle period: intimate, psychologically direct, and full of melody.",
+    "context": "Based on La Dame aux camélias, this opera brought contemporary social realism into Italian opera.",
+    "listen": "Notice how Verdi shifts from glittering party brilliance to fragile introspection, especially around Violetta.",
+    "moments": [
+      "Act I: 'Sempre libera'",
+      "Act II confrontation with Germont",
+      "Act III farewell and death scene"
+    ]
+  },
+  "Rigoletto": {
+    "story": "The court jester Rigoletto tries to protect his daughter Gilda from the corrupt Duke, but a curse and his own schemes lead to tragedy.",
+    "importance": "One of Verdi’s most concentrated dramas, with astonishing pace and unforgettable character contrast.",
+    "context": "Adapted from Victor Hugo; its cynicism and moral darkness shocked censors and audiences alike.",
+    "listen": "Track how Verdi contrasts the Duke’s charm, Gilda’s innocence, and Rigoletto’s bitterness.",
+    "moments": [
+      "'Questa o quella' / 'La donna è mobile'",
+      "Quartet 'Bella figlia dell’amore'",
+      "Final revelation"
+    ]
+  },
+  "Aida": {
+    "story": "An Ethiopian princess enslaved in Egypt and an Egyptian warrior are torn between love, empire, and duty.",
+    "importance": "Grand opera spectacle fused with intensely personal emotion.",
+    "context": "Written for Cairo and often associated with grandeur, but its deepest power is inward and tragic.",
+    "listen": "Listen for the contrast between ceremonial public scenes and the private emotional duets.",
+    "moments": [
+      "Triumphal Scene",
+      "Nile Scene",
+      "Final tomb duet"
+    ]
+  },
+  "Il Trovatore": {
+    "story": "A revenge-driven tale of mistaken identity, rivalry, and a devastating secret linking two enemies.",
+    "importance": "The plot is famously wild, but the hit-rate of great numbers is extraordinary.",
+    "context": "Verdi at full melodic fire; less realism, more operatic intensity and momentum.",
+    "listen": "Focus less on literal plausibility and more on emotional temperature and vocal impact.",
+    "moments": [
+      "Anvil Chorus",
+      "Leonora’s music",
+      "Azucena’s revelations"
+    ]
+  },
+  "Otello": {
+    "story": "Shakespeare’s general is manipulated by Iago into jealousy, suspicion, and catastrophe.",
+    "importance": "Late Verdi at full dramatic mastery: seamless, orchestral, and psychologically rich.",
+    "context": "After years away from opera, Verdi returned with a new, more continuous dramatic style.",
+    "listen": "Notice how the orchestra deepens character psychology, especially in Otello-Iago-Desdemona scenes.",
+    "moments": [
+      "Opening storm",
+      "Iago’s 'Credo'",
+      "Willow Song / Ave Maria / finale"
+    ]
+  },
+  "Falstaff": {
+    "story": "Sir John Falstaff’s comic attempts at seduction backfire as the whole town outwits him.",
+    "importance": "A miraculous late comedy: witty, quicksilver, and unlike almost anything else in Verdi.",
+    "context": "Verdi’s final opera turns from tragedy to sparkling ensemble comedy.",
+    "listen": "Enjoy the speed and interplay—this is conversation and ensemble as musical sport.",
+    "moments": [
+      "Laundry-basket trick",
+      "Windsor forest finale",
+      "Closing fugue"
+    ]
+  },
+  "The Marriage of Figaro": {
+    "story": "Servants and aristocrats trade disguises, intrigues, and reversals over a single chaotic day.",
+    "importance": "For many listeners, the supreme opera buffa: humane, funny, and musically perfect.",
+    "context": "Based on Beaumarchais; politically sharp, but Mozart softens satire with compassion.",
+    "listen": "Pay special attention to ensembles—Mozart lets many minds exist at once in music.",
+    "moments": [
+      "Act II finale",
+      "Susanna / Countess scenes",
+      "Count’s forgiveness"
+    ]
+  },
+  "Don Giovanni": {
+    "story": "The libertine Don Giovanni seduces, deceives, and defies morality until the supernatural intervenes.",
+    "importance": "A blend of comedy, darkness, and philosophy unmatched in opera.",
+    "context": "Mozart and Da Ponte balance social comedy, erotic energy, and metaphysical dread.",
+    "listen": "Notice the unstable mix of wit and menace—especially in the final scenes.",
+    "moments": [
+      "Catalogue Aria",
+      "Champagne Aria",
+      "Commendatore scene"
+    ]
+  },
+  "The Magic Flute": {
+    "story": "A fairy-tale quest becomes a symbolic journey through trial, wisdom, love, and initiation.",
+    "importance": "One of Mozart’s most beloved works: accessible, magical, and full of layers.",
+    "context": "A singspiel mixing popular entertainment, folklore, and Enlightenment symbolism.",
+    "listen": "Enjoy the shifts between comedy, ritual, and lyric beauty rather than forcing one interpretation.",
+    "moments": [
+      "Queen of the Night arias",
+      "Pamina’s lament",
+      "Trials and final chorus"
+    ]
+  },
+  "Così fan tutte": {
+    "story": "Two young officers test their fiancées’ fidelity through disguise and manipulation—with unsettling results.",
+    "importance": "Morally prickly, musically sublime.",
+    "context": "Long controversial for its premise, now often prized for its psychological ambiguity.",
+    "listen": "Listen for Mozart’s tenderness toward characters even when the plot becomes cynical.",
+    "moments": [
+      "Fiordiligi’s arias",
+      "Ensemble deceptions",
+      "Final unresolved ending"
+    ]
+  },
+  "La Bohème": {
+    "story": "Young artists in Paris fall in love, joke, quarrel, and face poverty, illness, and loss.",
+    "importance": "Few operas feel this immediate, tender, and devastating.",
+    "context": "Puccini’s gift for emotional pacing makes everyday life feel mythic without losing realism.",
+    "listen": "Notice how Puccini paints atmosphere and memory as much as plot.",
+    "moments": [
+      "Mimì and Rodolfo meeting",
+      "Act II street scene",
+      "Final death scene"
+    ]
+  },
+  "Tosca": {
+    "story": "A singer, her lover, and a sadistic police chief collide in a fast, violent political thriller.",
+    "importance": "Puccini at his most theatrical and suspenseful.",
+    "context": "A tight, high-pressure drama set against Napoleonic-era Rome.",
+    "listen": "Track how Puccini builds pressure scene by scene—this opera moves almost cinematically.",
+    "moments": [
+      "Te Deum",
+      "'Vissi d’arte'",
+      "Execution / leap"
+    ]
+  },
+  "Madama Butterfly": {
+    "story": "A young Japanese woman marries an American naval officer and waits in vain for his faithful return.",
+    "importance": "One of opera’s great heartbreakers, with huge questions about innocence, empire, and illusion.",
+    "context": "A work of ravishing beauty that also invites critical discussion about Orientalism and power.",
+    "listen": "Listen for the slow accumulation of hope and dread rather than expecting constant action.",
+    "moments": [
+      "Love duet",
+      "Humming Chorus",
+      "Final scene"
+    ]
+  },
+  "Turandot": {
+    "story": "An icy princess sets deadly riddles for suitors until desire, violence, and sacrifice force a transformation.",
+    "importance": "Puccini’s unfinished final opera: grand, strange, and brutally theatrical.",
+    "context": "A fairy-tale spectacle that mixes exoticism, ritual, and emotional extremity.",
+    "listen": "Enjoy the sheer sonic scale, but also ask what the opera is really saying about power and tenderness.",
+    "moments": [
+      "'In questa reggia'",
+      "Riddle scene",
+      "'Nessun dorma'"
+    ]
+  },
+  "Cavalleria rusticana": {
+    "story": "Jealousy, desire, honor, and revenge explode in a Sicilian village on Easter morning.",
+    "importance": "A defining verismo shockwave: compact, raw, and direct.",
+    "context": "Helped launch a grittier operatic realism focused on ordinary people and violent emotion.",
+    "listen": "Feel the compression—everything escalates quickly and intensely.",
+    "moments": [
+      "Easter Hymn",
+      "Santuzza / Turiddu confrontation",
+      "Offstage duel aftermath"
+    ]
+  },
+  "Pagliacci": {
+    "story": "A clown troupe’s onstage comedy collapses into real jealousy and murder.",
+    "importance": "Perhaps the signature verismo opera, where performance and reality fatally collide.",
+    "context": "Often paired with Cavalleria rusticana for a double bill of concentrated realism.",
+    "listen": "Watch how the opera blurs theatrical role-playing and private obsession.",
+    "moments": [
+      "Prologue",
+      "'Vesti la giubba'",
+      "Play-within-the-play finale"
+    ]
+  },
+  "Die Walküre": {
+    "story": "Forbidden love, divine conflict, and family tragedy unfold inside Wagner’s Ring cycle.",
+    "importance": "The most approachable entry point to the Ring for many listeners.",
+    "context": "Mythic scale, but anchored in intensely human conflict between love, law, and compassion.",
+    "listen": "Listen for recurring leitmotifs and how they gather emotional meaning across the act.",
+    "moments": [
+      "Act I love duet",
+      "Wotan / Fricka debate",
+      "Ride of the Valkyries / farewell"
+    ]
+  },
+  "Tristan und Isolde": {
+    "story": "A potion unleashes overwhelming love between Tristan and Isolde, but fulfillment is possible only beyond ordinary life.",
+    "importance": "A landmark in musical history and emotional extremity.",
+    "context": "Its harmony famously changed the future of Western music.",
+    "listen": "Let yourself sink into longing, suspension, and delayed resolution rather than conventional plot.",
+    "moments": [
+      "Act I narration",
+      "Act II love duet",
+      "Liebestod"
+    ]
+  },
+  "Parsifal": {
+    "story": "An innocent outsider journeys toward compassion, healing, and spiritual insight in the Grail realm.",
+    "importance": "Wagner’s final stage work: ceremonial, slow-burning, and hypnotic.",
+    "context": "A festival play that mixes myth, religion, and redemption.",
+    "listen": "Patience matters here—listen for ritual atmosphere and transformation more than action.",
+    "moments": [
+      "Prelude and Grail world",
+      "Good Friday music",
+      "Final healing"
+    ]
+  },
+  "Fidelio": {
+    "story": "Leonore disguises herself as a man to rescue her imprisoned husband from political tyranny.",
+    "importance": "Beethoven’s only opera and a key freedom-and-rescue drama.",
+    "context": "A bridge between classical style and romantic moral idealism.",
+    "listen": "Notice the tension between spoken-theater rescue plot and Beethoven’s elevated ethical vision.",
+    "moments": [
+      "Prisoners’ Chorus",
+      "Leonore reveal",
+      "Final liberation"
+    ]
+  },
+  "Carmen": {
+    "story": "The free-spirited Carmen entangles Don José, whose obsession destroys them both.",
+    "importance": "One of the most popular operas ever, but darker and stranger than its reputation suggests.",
+    "context": "Initially controversial; now central to the repertory for its fatalism and vivid characterization.",
+    "listen": "Resist reducing Carmen to 'seductress'—listen for competing ideas of freedom and possession.",
+    "moments": [
+      "Habanera",
+      "Seguidilla",
+      "Card scene / finale"
+    ]
+  },
+  "Faust": {
+    "story": "The scholar Faust trades with the devil for youth and desire, setting off seduction, guilt, and damnation.",
+    "importance": "French lyric grandeur with spiritual stakes and memorable set pieces.",
+    "context": "A hugely influential adaptation of Goethe filtered through 19th-century French opera.",
+    "listen": "Notice the blend of elegance, seduction, and religious intensity.",
+    "moments": [
+      "Jewel Song",
+      "Church scene",
+      "Final redemption"
+    ]
+  },
+  "The Tales of Hoffmann": {
+    "story": "The poet Hoffmann recounts three disastrous love affairs in a surreal night of memory and fantasy.",
+    "importance": "A dreamlike masterpiece of storytelling frames, obsession, and theatrical invention.",
+    "context": "Offenbach’s final, posthumously completed opera remains textually fluid in performance.",
+    "listen": "Enjoy the opera’s shifting tone—comic, eerie, melancholic, and fantastical.",
+    "moments": [
+      "Olympia scene",
+      "Antonia act",
+      "Barcarolle / epilogue"
+    ]
+  },
+  "Pelléas et Mélisande": {
+    "story": "A mysterious young woman enters a shadowed household where love, jealousy, and fate unfold almost in whispers.",
+    "importance": "Debussy’s radical alternative to big romantic declamation.",
+    "context": "A symbolist drama where suggestion matters more than explicit statement.",
+    "listen": "Listen for atmosphere, speech-like vocal lines, and emotional undercurrents.",
+    "moments": [
+      "Tower hair scene",
+      "Grotto / well imagery",
+      "Final death scene"
+    ]
+  },
+  "Eugene Onegin": {
+    "story": "Tatiana’s youthful confession to Onegin is rejected; years later he realizes too late what he has lost.",
+    "importance": "Lyric intimacy and emotional regret at their finest.",
+    "context": "Tchaikovsky emphasizes inner feeling over spectacle.",
+    "listen": "Focus on character growth and the ache of missed timing.",
+    "moments": [
+      "Letter Scene",
+      "Duel",
+      "Final confrontation"
+    ]
+  },
+  "Boris Godunov": {
+    "story": "A tsar haunted by guilt rules amid political instability, prophecy, and popular unrest.",
+    "importance": "A monumental political and psychological opera.",
+    "context": "Mussorgsky’s rough-edged realism gives the people and the ruler equal weight.",
+    "listen": "Notice the choral and historical scale alongside Boris’s private unraveling.",
+    "moments": [
+      "Coronation",
+      "Clock scene",
+      "Death of Boris"
+    ]
+  },
+  "The Bartered Bride": {
+    "story": "Young lovers outwit parental plans and a comic marriage broker in a joyful Czech village comedy.",
+    "importance": "A cornerstone of Czech national opera and pure delight in the theater.",
+    "context": "Folk energy, dance rhythms, and national style drive the piece.",
+    "listen": "Enjoy the rhythmic vitality and comic timing more than deep psychology.",
+    "moments": [
+      "Polka / dances",
+      "Marriage broker scenes",
+      "Final reveal"
+    ]
+  },
+  "Jenůfa": {
+    "story": "Love, shame, social pressure, and an unbearable crime reshape the lives of Jenůfa and her family.",
+    "importance": "One of the most powerful operas of the early 20th century.",
+    "context": "Janáček’s sharp, speech-rooted style captures community pressure and private pain.",
+    "listen": "Notice how emotional truth comes through compressed, urgent musical speech.",
+    "moments": [
+      "Act II confession",
+      "Discovery of the child",
+      "Final forgiveness"
+    ]
+  }
+};
+
+
+function buildStarterLinks(op){
+  const title = op.title;
+  const q = encodeURIComponent;
+  return [
+    ["Met Opera Guild lecture search", `https://www.google.com/search?q=${q(`site:metopera.org "${title}" "Met Opera Guild" podcast OR lecture`)}`],
+    ["Met Guild course + lecture search", `https://www.google.com/search?q=${q(`site:metguild.thinkific.com OR site:metopera.org "${title}" opera course lecture`)}`],
+    ["LA Opera pre-performance / talk search", `https://www.google.com/search?q=${q(`site:laopera.org "${title}" opera talk lecture OR pre-performance`)}`],
+    ["YouTube lecture-style guide", `https://www.youtube.com/results?search_query=${q(`${title} opera lecture libretto historical context`)}`],
+    ["Libretto + translation search", `https://www.google.com/search?q=${q(`${title} libretto translation`)}`]
+  ];
+}
+
+function getGuidedInfo(op){
+  const base = GUIDED_DATA[op.title];
+  if (base) return base;
+  return { story: "", importance: "", context: "", listen: "", moments: [] };
+}
 
 const STORAGE_KEY = "operaTrackerData_v2";
 
@@ -603,6 +944,44 @@ function operaCard(op){
     <div class="field">
       <label>Notes</label>
       <textarea data-field="notes" placeholder="What stood out? Favorite aria? Production concept?">${escapeHtml(op.notes)}</textarea>
+    </div>
+
+    <div class="guide-panel">
+      <button type="button" class="guide-toggle js-guide-toggle">
+        <span><strong>Guided listening</strong> <span class="small">Synopsis, listening prompts, and lecture-style starter links</span></span>
+        <span class="chev js-guide-chev">▸</span>
+      </button>
+      <div class="guide-body hidden">
+        <div class="guide-grid">
+          <div class="guide-box">
+            <h4>Story setup</h4>
+            <p>${escapeHtml(getGuidedInfo(op).story || "") || "Add your own synopsis or scene-by-scene setup here."}</p>
+          </div>
+          <div class="guide-box">
+            <h4>Why it matters</h4>
+            <p>${escapeHtml(getGuidedInfo(op).importance || "") || "Use this space for why the opera matters historically or musically."}</p>
+          </div>
+          <div class="guide-box">
+            <h4>Historical / artistic context</h4>
+            <p>${escapeHtml(getGuidedInfo(op).context || "") || "Add context on the composer, source text, politics, or premiere."}</p>
+          </div>
+          <div class="guide-box">
+            <h4>What to listen for</h4>
+            <p>${escapeHtml(getGuidedInfo(op).listen || "") || "Add recurring motifs, ensembles, harmonic language, orchestral color, or vocal writing."}</p>
+          </div>
+          <div class="guide-box" style="grid-column:1 / -1">
+            <h4>Key scenes / moments</h4>
+            ${
+              (getGuidedInfo(op).moments || []).length
+                ? `<ul class="mini-list">${getGuidedInfo(op).moments.map(m => `<li>${escapeHtml(m)}</li>`).join("")}</ul>`
+                : `<p>Add act breaks, arias, confrontations, and scenes you want to revisit.</p>`
+            }
+          </div>
+        </div>
+        <div class="guide-links">
+          ${buildStarterLinks(op).map(([name,url])=>`<a href="${url}" target="_blank" rel="noopener"><button type="button">${escapeHtml(name)}</button></a>`).join("")}
+        </div>
+      </div>
     </div>
 
     <div class="inline">
@@ -1060,13 +1439,11 @@ document.getElementById("resetBtn").addEventListener("click", ()=>{
 
 renderAll();
 
-
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./service-worker.js').catch(() => {});
   });
 }
-
 </script>
 </body>
 </html>
